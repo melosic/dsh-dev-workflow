@@ -162,6 +162,7 @@ describe('src/i18n.ts', () => {
       'security.guard.force_push',
       'security.guard.hard_reset',
       'security.guard.no_verify',
+      'security.guard.outward_issue',
       'security.guard.outward_publish',
       'security.guard.outward_pull_request',
       'security.guard.outward_push',

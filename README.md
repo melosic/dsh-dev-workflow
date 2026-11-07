@@ -72,7 +72,7 @@ The full spec is not on this path either: it stays resident as one summary line 
 | --- | --- | --- |
 | Command | `rm -rf /`, `mkfs`, `dd of=/dev/sda` — irreversible | ask |
 | git | `reset --hard`, `clean -f`, `push --force`, branch deletion, `--no-verify`, `git restore .` | ask |
-| Outward | `push`, `tag`, `gh pr create`, `npm publish` — others will see it | ask |
+| Outward | `push`, `tag`, `gh pr create`, `gh issue create`, `npm publish` — others will see it | ask |
 | Sensitive files | `.env`, `*.pem`, private keys, the `credentials` file and directory | deny |
 | Credentials | A real secret in the command arguments | deny, unless the line only reads |
 

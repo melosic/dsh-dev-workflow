@@ -323,8 +323,8 @@ export const Config = z.object({
     })
     .default({}),
   /**
-   * Policies for actions other people can see: a push, a tag, a pull request, a
-   * publish. Unlike the guards below, nothing here is unrecoverable on this
+   * Policies for actions other people can see: a push, a tag, a pull request, an
+   * issue, a publish. Unlike the guards below, nothing here is unrecoverable on this
    * machine — the risk is announcing work the user has not agreed to yet, so the
    * point is consent rather than obstruction.
    */
@@ -340,6 +340,8 @@ export const Config = z.object({
       tag: guardAction(),
       /** `gh pr create`, which asks other people to look at the branch. */
       pullRequest: guardAction(),
+      /** `gh issue create` and the other verbs that write to the tracker. */
+      issue: guardAction(),
       /** `npm publish` / `pnpm publish`, which cannot be taken back. */
       publish: guardAction(),
     })

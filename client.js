@@ -155,6 +155,7 @@ window.__ModuleLoader__.load({
       'outward.push': 'Push to the remote',
       'outward.tag': 'Create a tag',
       'outward.pullRequest': 'Open a pull request',
+      'outward.issue': 'Open an issue',
       'outward.publish': 'Publish a version',
       'hint.mode':
         'Off withdraws every tool, skill, command and trigger this plugin registers, so it costs no tokens. The plugin itself stays loaded — enabling or disabling it is the plugin manager\u2019s job.',
@@ -177,7 +178,7 @@ window.__ModuleLoader__.load({
       'hint.rememberApproved':
         'Applies to git operations whose policy is Ask: one approval covers the same operation for the rest of the session. Deny is never affected.',
       'hint.outward':
-        'Covers the actions other people can see: a push, a tag, a pull request, a publish. Nothing here is lost if it goes wrong on this machine — the question is whether you agreed to announce it.',
+        'Covers the actions other people can see: a push, a tag, a pull request, an issue, a publish. Nothing here is lost if it goes wrong on this machine — the question is whether you agreed to announce it.',
       'hint.gitEnabled':
         'Off means no git operation is questioned again: a force push, a hard reset, a rebase, an amend, a branch delete, a clean, a discarded working tree, or --no-verify all run untouched.',
       'hint.commandEnabled':
@@ -277,6 +278,7 @@ window.__ModuleLoader__.load({
       'outward.push': '推送到远端',
       'outward.tag': '创建标签',
       'outward.pullRequest': '创建 PR',
+      'outward.issue': '创建 issue',
       'outward.publish': '发布版本',
       'hint.mode':
         '关闭后，本插件注册的工具、技能、命令和触发器全部撤销，不占常驻 token。插件本身仍然加载 —— 启用或停用是插件管理器的事。',
@@ -295,7 +297,7 @@ window.__ModuleLoader__.load({
       'hint.rememberApproved':
         '仅对策略为「询问」的 git 操作生效：一次同意覆盖本会话内同一操作。策略为「拒绝」的操作永不受影响。',
       'hint.outward':
-        '覆盖其他人看得见的动作：推送、打标签、创建 PR、发布。这些在本机做错了都还能回头 —— 要确认的是你有没有同意把它公开出去。',
+        '覆盖其他人看得见的动作：推送、打标签、创建 PR、开 issue、发布。这些在本机做错了都还能回头 —— 要确认的是你有没有同意把它公开出去。',
       'hint.gitEnabled':
         '关闭后不再过问任何 git 操作：强制推送、硬重置、变基、修改已有提交、删分支、清理未跟踪文件、丢弃工作区改动、--no-verify 全部原样执行。',
       'hint.commandEnabled':
@@ -373,7 +375,7 @@ window.__ModuleLoader__.load({
       { value: 'ask', label: 'value.ask' },
       { value: 'allow', label: 'value.allow' },
     ]
-    const OUTWARD_POLICIES = ['push', 'tag', 'pullRequest', 'publish']
+    const OUTWARD_POLICIES = ['push', 'tag', 'pullRequest', 'issue', 'publish']
     const GROUPS = [
       { key: 'workflow', open: true },
       { key: 'commit', open: true },
@@ -640,6 +642,7 @@ window.__ModuleLoader__.load({
         'outwardGuard.push',
         'outwardGuard.tag',
         'outwardGuard.pullRequest',
+        'outwardGuard.issue',
         'outwardGuard.publish',
       ],
       'commandGuard.enabled': ['commandGuard.dangerousShell'],

@@ -89,6 +89,8 @@
   "security.guard.outward_tag.label": "打标签",
   "security.guard.outward_pull_request": "创建 PR 等于请其他人来审查当前分支。",
   "security.guard.outward_pull_request.label": "创建 PR",
+  "security.guard.outward_issue": "创建 issue 等于在这座仓库里公开挂出一条报告，其他人都会看到。",
+  "security.guard.outward_issue.label": "创建 issue",
   "security.guard.outward_publish": "发布版本对所有安装该包的人都可见，且无法撤回。",
   "security.guard.outward_publish.label": "发布版本",
   "security.guard.suggest_force_with_lease": "建议改用 --force-with-lease：它会拒绝覆盖你尚未看到的提交。",

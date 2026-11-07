@@ -212,6 +212,37 @@ export function detectPullRequest(command: string): PullRequestCommand | undefin
   return undefined
 }
 
+/** `gh issue` verbs that only read; every other verb writes to the tracker. */
+const READING_ISSUE_VERBS = new Set(['list', 'view', 'status'])
+
+/**
+ * Recognise a `gh issue` that writes to the tracker in one shell command.
+ *
+ * `create` is the obvious one, but `edit`, `comment`, `close` and
+ * `transfer` leave a public trace just the same, and the forge keeps adding
+ * verbs. The read-only ones are the small, closed set, so every other named
+ * verb counts: a verb that appears later is copied to a tracker the user has
+ * not agreed to, and this gate only asks.
+ * @param command - a shell command line, as a tool would receive it.
+ * @returns `true` when the command line writes to an issue.
+ */
+export function detectIssue(command: string): boolean {
+  for (const { program, args } of wordInvocations(quoteCommandWords(command))) {
+    if (program !== 'gh' && program !== 'gh.exe') continue
+    let index = 0
+    while (index < args.length && GH_GLOBAL_VALUE_OPTIONS.has(args[index]?.value ?? '')) index += 2
+    while (index < args.length && (args[index]?.value ?? '').startsWith('--')) index += 1
+    if (args[index]?.value !== 'issue') continue
+    const verb = args[index + 1]?.value
+    // A bare `gh issue` and `gh issue --help` print the command list. Reading
+    // the missing verb as a write would ask about help text.
+    if (verb === undefined || verb === '--help' || verb === '-h' || verb === 'help') continue
+    if (READING_ISSUE_VERBS.has(verb)) continue
+    return true
+  }
+  return false
+}
+
 /**
  * Split a description into its `##` sections.
  *

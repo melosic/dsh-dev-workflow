@@ -325,7 +325,7 @@ PR 到达检查时是「若干标题 + 若干段 `<!-- 这里写什么 -->`」�
 ## 守卫对外可见动作
 
 第二道守卫（`src/guard/outward-guard.ts`）管的是另一类错误：**在本机完全可回退，但一旦离开
-本机，其他人立刻就看得见。** 推送、打标签、创建 PR、发布都越过这条线；agent 抢在用户同意
+本机，其他人立刻就看得见。** 推送、打标签、创建 PR、开 issue、发布都越过这条线；agent 抢在用户同意
 之前替你对外宣称「做完了」，正是缺这一道门时会发生的事。
 
 | 命令形态 | 策略键 | 默认 |
@@ -333,14 +333,16 @@ PR 到达检查时是「若干标题 + 若干段 `<!-- 这里写什么 -->`」�
 | 任意 `git push`（不只强推） | `outwardGuard.push` | `ask` |
 | `git tag <name>`（建标签，不是读标签） | `outwardGuard.tag` | `ask` |
 | `gh pr create` | `outwardGuard.pullRequest` | `ask` |
+| `gh issue` 的写操作（`create`、`comment`、`close` 等） | `outwardGuard.issue` | `ask` |
 | `npm publish` / `pnpm publish` | `outwardGuard.publish` | `ask` |
 
 - **普通 `git push` 也拦。** 强推是另一个、更严重的问题，仍归 `gitGuard.forcePush`；
   这里拦的是「把分支推到远端」本身。同一条 `git push --force` 会同时命中两道守卫，
   最终理由由更严者胜出——强推的理由盖过「推送」的理由。
-- **两处识别复用触发器里的同一份判断。** 建标签与读标签之别、`gh pr create` 与 `gh pr list`
-  之别、以及 `--dry-run` / `-n` 不算发版，都走 `detectRelease()` 与 `detectPullRequest()`——
-  「什么算一次发版」只能有一个答案，否则门禁和检查会对同一行命令各说各话。
+- **识别复用触发器里的同一份判断。** 建标签与读标签之别、`gh pr create` 与 `gh pr list`
+  之别、`gh issue create` 与 `gh issue list` 之别、以及 `--dry-run` / `-n` 不算发版，都走
+  `detectRelease()`、`detectPullRequest()` 与 `detectIssue()`——「什么算一次发版」只能有一个
+  答案，否则门禁和检查会对同一行命令各说各话。
 - **`--dry-run` 演习一律放过。** 它不碰远端也不上传，没有需要用户同意的事。
 - **能力边界与触发器相同。** 只看命令行词法：`sh -c "git push"` 会被递归解析出内部的命令，
   但纯动态拼装（`eval`、变量展开的脚本）读不出——那是 `docs/SECURITY.md` 里声明过的边界。

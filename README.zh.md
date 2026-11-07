@@ -72,7 +72,7 @@
 | --- | --- | --- |
 | 命令 | `rm -rf /`、`mkfs`、`dd of=/dev/sda` —— 不可撤销 | 问 |
 | git | `reset --hard`、`clean -f`、`push --force`、删分支、`--no-verify`、`git restore .` | 问 |
-| 对外 | `push`、`tag`、`gh pr create`、`npm publish` —— 别人会看见 | 问 |
+| 对外 | `push`、`tag`、`gh pr create`、`gh issue create`、`npm publish` —— 别人会看见 | 问 |
 | 敏感文件 | `.env`、`*.pem`、私钥、`credentials` 文件与目录 | 拒 |
 | 凭据 | 命令行参数里出现真实密钥 | 拒；只读的命令行除外 |
 

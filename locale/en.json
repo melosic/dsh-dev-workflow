@@ -89,6 +89,8 @@
   "security.guard.outward_tag.label": "tag",
   "security.guard.outward_pull_request": "Opening a pull request asks other people to review this branch.",
   "security.guard.outward_pull_request.label": "pull request",
+  "security.guard.outward_issue": "Opening an issue files a public report against this repository, where other people will read it.",
+  "security.guard.outward_issue.label": "open an issue",
   "security.guard.outward_publish": "Publishing a version is visible to everyone who installs the package, and cannot be taken back.",
   "security.guard.outward_publish.label": "publish",
   "security.guard.suggest_force_with_lease": "Prefer --force-with-lease: it refuses to overwrite commits you have not seen.",
