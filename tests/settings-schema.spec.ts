@@ -63,6 +63,7 @@ const REQUIRED = [
   'outwardGuard.push',
   'outwardGuard.tag',
   'outwardGuard.pullRequest',
+  'outwardGuard.issue',
   'outwardGuard.publish',
   'commandGuard.enabled',
   'commandGuard.dangerousShell',
@@ -187,11 +188,11 @@ describe('client.js schema agreement', () => {
     }
   })
 
-  it('gives all four outward actions the same three policies', () => {
+  it('gives all five outward actions the same three policies', () => {
     const outward = REQUIRED.filter((key) => key.startsWith('outwardGuard.')).filter(
       (key) => key !== 'outwardGuard.enabled',
     )
-    expect(outward).toHaveLength(4)
+    expect(outward).toHaveLength(5)
 
     for (const key of outward) {
       const field = description.fields.find((entry) => keyOf(entry.path) === key)

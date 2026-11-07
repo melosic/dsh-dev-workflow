@@ -61,7 +61,7 @@ file-guard 管**不该被读**的路径，secret-guard 管**发出即泄漏**的
 ## outward-guard 保护什么
 
 前一道守卫防的是「东西丢了」。这一道防的是另一个错误：**在本机完全可回退，但离开本机的那一刻
-其他人就看得见。** 一个还没等到用户点头就先推送、打标签、开 PR 或发版的 agent，说的正是
+其他人就看得见。** 一个还没等到用户点头就先推送、打标签、开 PR、开 issue 或发版的 agent，说的正是
 「你已经同意了」——而用户并没有。
 
 | 动作 | 策略键 | 默认 | 为什么需要确认 |
@@ -69,9 +69,10 @@ file-guard 管**不该被读**的路径，secret-guard 管**发出即泄漏**的
 | 任意 `git push`（不只强推） | `outwardGuard.push` | `ask` | 分支以用户的名义出现在远端 |
 | `git tag <name>`（建标签，不是读标签） | `outwardGuard.tag` | `ask` | 标签是公开标记，别人据此开始构建 |
 | `gh pr create` | `outwardGuard.pullRequest` | `ask` | 等于请其他人来审查这个分支 |
+| `gh issue` 的写操作（`create`、`comment`、`close` 等） | `outwardGuard.issue` | `ask` | 在仓库里公开挂出一条报告，别人会读到 |
 | `npm publish` / `pnpm publish` | `outwardGuard.publish` | `ask` | 所有安装该包的人都看得见，且无法撤回 |
 
-**四项默认全是 `ask`，不是 `deny`。** 这是本插件里唯一一道「本机不会丢任何东西」的守卫，
+**五项默认全是 `ask`，不是 `deny`。** 这是本插件里唯一一道「本机不会丢任何东西」的守卫，
 要的是同意而非阻拦：用户点头，命令原样放行。写 `deny` 会把「先问一句」变成「此路不通」，
 而这条路上的动作本来就是正常工作的一部分。
 

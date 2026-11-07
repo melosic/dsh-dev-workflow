@@ -60,6 +60,7 @@ describe('src/config.ts', () => {
       push: 'ask',
       tag: 'ask',
       pullRequest: 'ask',
+      issue: 'ask',
       publish: 'ask',
     })
   })

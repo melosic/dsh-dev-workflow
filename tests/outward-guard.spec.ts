@@ -96,6 +96,28 @@ describe('src/guard/outward-guard.ts', () => {
     expect(classify('gh pr view 21')).toBeUndefined()
   })
 
+  it('asks about an issue that is filed and not about one that is read', () => {
+    expect(classify('gh issue create --title x --body y')).toMatchObject({
+      reason: 'security.guard.outward_issue',
+      action: 'ask',
+    })
+    expect(classify('gh issue create --body-file notes.md')).toMatchObject({
+      reason: 'security.guard.outward_issue',
+    })
+    // Every verb but the reading ones writes to a tracker other people read, so
+    // the gate follows the verb rather than listing the writes it knows.
+    expect(classify('gh issue comment 3 --body x')).toMatchObject({
+      reason: 'security.guard.outward_issue',
+    })
+    expect(classify('gh issue close 3')).toMatchObject({ reason: 'security.guard.outward_issue' })
+    expect(classify('gh issue list')).toBeUndefined()
+    expect(classify('gh issue view 3')).toBeUndefined()
+    expect(classify('gh issue status')).toBeUndefined()
+    // Asking gh for help reads the manual, not a tracker.
+    expect(classify('gh issue --help')).toBeUndefined()
+    expect(classify('gh issue')).toBeUndefined()
+  })
+
   it('asks about a publish and not about a rehearsal or an install', () => {
     expect(classify('npm publish')).toMatchObject({
       reason: 'security.guard.outward_publish',

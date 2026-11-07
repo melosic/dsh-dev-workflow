@@ -56,7 +56,7 @@ src/
 │   ├── shared.ts             五道守卫共用的事件接线与档位决策
 │   ├── approval.ts           守卫侧审批提问：把接缝的答案翻成放行或拒绝
 │   ├── git-guard.ts          危险 git 命令
-│   ├── outward-guard.ts      对外可见动作（推送、标签、PR、发布）
+│   ├── outward-guard.ts      对外可见动作（推送、标签、PR、issue、发布）
 │   ├── command-guard.ts      危险 shell 命令
 │   ├── file-guard.ts         敏感路径
 │   └── secret-guard.ts       凭据泄漏

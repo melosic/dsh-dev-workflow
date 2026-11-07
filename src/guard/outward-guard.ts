@@ -1,6 +1,6 @@
 import type { Config } from '../config.js'
 import { commandOf, gitInvocations } from '../shell.js'
-import { detectPullRequest } from '../triggers/pre-pr.js'
+import { detectIssue, detectPullRequest } from '../triggers/pre-pr.js'
 import { detectRelease } from '../triggers/pre-release.js'
 import { createGuardApprover } from './approval.js'
 import type { ApprovalService } from './approval.js'
@@ -13,14 +13,15 @@ import type { GuardHit, GuardOptions } from './shared.js'
 // own reckoning — a discarded commit, a wiped disk, a credential in an argument.
 // This one covers a different mistake: an action that is perfectly reversible
 // here, but that other people can see the moment it leaves. A push, a tag, a
-// pull request, and a publish all cross that line — and an agent running ahead
-// to announce work the user has not agreed to yet is exactly what happens
-// without a gate here.
+// pull request, an issue, and a publish all cross that line — and an agent
+// running ahead to announce work the user has not agreed to yet is exactly what
+// happens without a gate here.
 //
-// Like the git guard it classifies words rather than running a shell. The two
-// recognisers it needs are the ones the pull-request and release triggers already
-// use, imported rather than copied: "what counts as a release" has to stay one
-// answer, or the gate and the check will disagree about what they are looking at.
+// Like the git guard it classifies words rather than running a shell. The
+// recognisers it needs are the ones the pull-request and release triggers
+// already use, imported rather than copied: "what counts as a release" has to
+// stay one answer, or the gate and the check will disagree about what they are
+// looking at.
 //
 // Every default is `ask`, never `allow`. The point is consent, not obstruction:
 // the user says yes, and the push goes through untouched.
@@ -70,6 +71,9 @@ export function detectOutward(command: string, config: Config): GuardHit | undef
 
   if (detectPullRequest(command) !== undefined) {
     hits.push({ reason: 'security.guard.outward_pull_request', action: guard.pullRequest.get() })
+  }
+  if (detectIssue(command)) {
+    hits.push({ reason: 'security.guard.outward_issue', action: guard.issue.get() })
   }
 
   return strictest(hits)

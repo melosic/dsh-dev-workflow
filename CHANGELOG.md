@@ -37,6 +37,7 @@
 - `/dev-workflow check --message "feat: x"` 不再把引号当成消息内容判：外层一对配对引号先剥掉，文档里那种写法现在报的是它真正的问题。
 - PR 描述里唯一的引用就是它自己的编号时不再算「已关联 Issue」：`gh pr edit 13` 的正文只提 `#13` 另给一条提示，仍只警告。
 - 审计日志路径没被 `.gitignore` 忽略时，写完第一行后按 warning 说一次（走 `git check-ignore`），免得拒绝清单随下一次提交出门。
+- 写 issue 的动作（`gh issue create`、`comment`、`close` 等）以前没有守卫：现归入 outward-guard，新增 `outwardGuard.issue`，读操作不算。
 
 ### Changed
 

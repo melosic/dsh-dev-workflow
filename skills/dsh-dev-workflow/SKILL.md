@@ -812,7 +812,7 @@ configured:
 - **How configurable a guard is depends on which guard it is.** `gitGuard` gives
   each rule its own policy (force push, hard reset, rebase, amend, branch delete,
   clean, discarded checkout, `--no-verify`), and `outwardGuard` gives each
-  outward action its own (push, tag, pull request, publish). `commandGuard` has
+  outward action its own (push, tag, pull request, issue, publish). `commandGuard` has
   a single policy for every recognised pattern, because they share the one
   property that matters — none can be undone. `fileGuard` and `secretGuard` are
   fixed `deny` with no per-item exemption, so the only relaxation is turning the

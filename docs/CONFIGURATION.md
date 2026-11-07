@@ -24,7 +24,7 @@ profile 的 `cordis.patch.yml`，插件无需重启就会读到新值（详见 [
 | `locale` | `'auto' \| 'en-US' \| 'zh-CN'` | `'auto'` | 本插件自身文案的语言（**不是**设置页的语言，也**不**决定模型怎么写提交信息） |
 | `enableOwnTrigger` | `boolean` | `true` | 是否运行自带的三个约定检查（提交前、PR 前、发版前） |
 | `gitGuard` | 对象 | 见下 | 危险 git 操作的策略 |
-| `outwardGuard` | 对象 | 见下 | 对外可见动作（推送、标签、PR、发布）的策略 |
+| `outwardGuard` | 对象 | 见下 | 对外可见动作（推送、标签、PR、issue、发布）的策略 |
 | `commandGuard` | 对象 | 见下 | 危险 shell 命令的策略 |
 | `fileGuard` | 对象 | 见下 | 不许读取的敏感路径 |
 | `secretGuard` | 对象 | 见下 | 凭据泄漏预防 |
@@ -363,9 +363,10 @@ DSH 的审批层是**一次性**的：`ApprovalOutcome` 里只有 `allowed-once`
 | `push` | 动作 | `'ask'` | 任意 `git push`（不含 `--dry-run`）；强推另由 `gitGuard.forcePush` 判定 |
 | `tag` | 动作 | `'ask'` | `git tag <name>` 建标签；`-l` / `-d` / `-v` 这类读操作不算 |
 | `pullRequest` | 动作 | `'ask'` | `gh pr create`；`gh pr list` / `view` 不算 |
+| `issue` | 动作 | `'ask'` | `gh issue` 的写操作（`create`、`comment`、`close` 等）；`list` / `view` / `status` 不算 |
 | `publish` | 动作 | `'ask'` | `npm publish` / `pnpm publish` / `yarn publish` / `bun publish`；`--dry-run` / `-n` 不算 |
 
-四项默认都是 `ask` 而非 `deny`：这是唯一一道**本机不会造成任何损失**的守卫，要的是用户
+五项默认都是 `ask` 而非 `deny`：这是唯一一道**本机不会造成任何损失**的守卫，要的是用户
 点头同意，而不是禁止这类操作。`git push --force` 同时命中本守卫与 `gitGuard.forcePush`，
 理由按「更严者胜」由强推那条给出。
 
@@ -491,7 +492,7 @@ DSH 的审批层是**一次性**的：`ApprovalOutcome` 里只有 `allowed-once`
 反过来说，手改文件后重新加载同样会反映到面板。
 
 保存成功时底部会出现一行提示；它只说明「这一批值已经落到 profile 里了」，下一次编辑、取消或
-关闭设置面板时就会消失。官方 `SettingsForm` 只报告失败，但本表单有 37 个字段，只靠按钮从
+关闭设置面板时就会消失。官方 `SettingsForm` 只报告失败，但本表单有 38 个字段，只靠按钮从
 「可点」变回「不可点」来暗示成功，滚在顶部的人无从判断——所以这里补了一行明确的成功提示。
 提示绑定在「这一次打开面板」上：设置面板关闭时会卸载这个 section，而草稿实例与插件同生命周期，
 所以提示在这两者之间要显式清掉，否则下次打开面板会重放上次的保存提示。底部的两个按钮靠右对齐，
@@ -524,13 +525,13 @@ DSH 的审批层是**一次性**的：`ApprovalOutcome` 里只有 `allowed-once`
 但恰好等于当前有效值（字段本来就是这个值，或别人刚写进来），草稿会被丢掉、不产生任何写操作
 ——这一点和改动前一致。
 
-为什么值得知道：对安全相关的项（尤其 `gitGuard` 的八个档位与 `outwardGuard` 的四个）来说，「已覆盖」是一份**清单**。
+为什么值得知道：对安全相关的项（尤其 `gitGuard` 的八个档位与 `outwardGuard` 的五个）来说，「已覆盖」是一份**清单**。
 把它们从 `ask` 改成 `allow` 之后忘改回来，`allow` 会一直生效——徽标正是让你能找回这些字段的
 东西，`approval.disabled` 的文案里也把这一点写了出来（见
 [权限策略为 `never` 时会发生什么](#权限策略为-never-时会发生什么)）。现在撤销也只要一步：
 把那个档位选回 `ask` 再保存，profile 里那一项就被删掉了。
 
-### 面板可以改的（37 项）
+### 面板可以改的（38 项）
 
 | 分组 | 项目 |
 | --- | --- |
@@ -538,7 +539,7 @@ DSH 的审批层是**一次性**的：`ApprovalOutcome` 里只有 `allowed-once`
 | 提交规范 | `commitCheck.enabled`、`onFailure`、`types`、`requireScope`、`subjectMaxLength` |
 | 文档同步 | `docsCheck.enabled`、`rules.requireChangelogOnFeat`、`docsCheck.requireReadmeOnConfig`、`releaseCheck.semver`、`releaseCheck.changelog`、`releaseCheck.changelogCategories`、`releaseCheck.prereleaseTag` |
 | Git 安全 | `gitGuard.enabled`、八个操作档位、`gitGuard.rememberApproved` |
-| 对外可见动作 | `outwardGuard.enabled`、`push`、`tag`、`pullRequest`、`publish` |
+| 对外可见动作 | `outwardGuard.enabled`、`push`、`tag`、`pullRequest`、`issue`、`publish` |
 | 命令安全 | `commandGuard.enabled`、`commandGuard.dangerousShell` |
 | 文件与密钥 | `fileGuard.enabled`、`secretGuard.enabled`、`secretGuard.genericHighEntropy` |
 | 审计日志 | `audit.enabled` |
