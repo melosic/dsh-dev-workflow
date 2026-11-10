@@ -775,12 +775,19 @@ describe('src/triggers/pre-pr.ts', () => {
     expect(state.lastOutcome()).toBeUndefined()
   })
 
-  it('never second-guesses a gate that already decided', async () => {
-    const { listener } = trigger()
+  it('keeps a refusal another gate made and adds its findings to it', async () => {
+    const { listener, state } = trigger()
     const refusal = await fire(listener, 'gh pr create --title "Add the flag"', {
       downstream: { kind: 'deny', reason: 'another gate says no' },
     })
-    expect(refusal).toEqual({ kind: 'deny', reason: 'another gate says no' })
+    // Under the `never` policy the outward guard's refusal is the whole answer,
+    // so the description rules would never be heard at all without this.
+    expect(refusal.kind).toBe('deny')
+    expect(refusal.kind === 'deny' && refusal.reason).toMatch(/^another gate says no\n/)
+    expect(refusal.kind === 'deny' && refusal.reason).toContain(
+      t('tool.check_commit_message.error.missing_type'),
+    )
+    expect(state.lastOutcome()).toMatchObject({ kind: 'pr', ok: false })
   })
 
   it('reports an abort rather than a finding', async () => {

@@ -212,6 +212,26 @@ function mergeRequest(
 }
 
 /**
+ * Append the findings to a refusal another gate already made.
+ *
+ * The refusal is not softened and not replaced: its kind, its own reason and
+ * whoever made it are kept as they are, and the findings follow. Under a policy
+ * that refuses without asking, the gate in front is the only thing the user
+ * hears about the call, so a check that stopped there would never speak at all.
+ * @param decision - the refusal to extend.
+ * @param options - the keys, and how to render the findings.
+ * @returns the extended refusal.
+ */
+function appendFindings(
+  decision: PreToolDecision & { readonly kind: 'deny' },
+  options: AskOptions,
+): PreToolDecision {
+  const own = sideOf(options.outcome, options.t, options.detailKey)
+  if (own.details === '') return decision
+  return { ...decision, reason: `${decision.reason}\n${own.details}` }
+}
+
+/**
  * Restate an answer that was not a grant as the refusal it is.
  *
  * The findings stay in the reason: the model's only account of why the call was
@@ -240,10 +260,12 @@ function refusalOf(
  * Settle a check that has already been evaluated.
  *
  * Five things shape the answer, and the order matters. A gate that denied the
- * call is not second-guessed, but the check still ran and its outcome is still
- * recorded, so the status line can say the command failed its convention check
- * rather than saying nothing happened. A question another gate is asking gains
- * the findings rather than being asked twice. A check that was *granted* is
+ * call keeps its refusal — the kind, the reason and who made it stand — and the
+ * findings are appended to that reason, so the model is told what else broke
+ * instead of being left with half the story. The check still ran either way, so
+ * the status line can say the command failed its convention check rather than
+ * saying nothing happened. A question another gate is asking gains the findings
+ * rather than being asked twice. A check that was *granted* is
  * remembered, so the same object is not stopped twice. And a check that was
  * refused — or never reached a person at all — is not remembered: a refusal
  * answers one attempt, so the next one is judged again.
@@ -266,7 +288,7 @@ export async function settleAbout(
   remember: () => void,
 ): Promise<PreToolDecision> {
   if (downstream.kind === 'cancel') return downstream
-  if (downstream.kind === 'deny') return downstream
+  if (downstream.kind === 'deny') return appendFindings(downstream, options)
 
   const settledBy = options.settledBy
   if (downstream.kind !== 'allow' && settledBy !== undefined) {

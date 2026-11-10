@@ -201,6 +201,7 @@ PR 标题与描述、发版步骤与 CHANGELOG），五个守工作成果（可�
   `settleAbout()` 的结算与文件读取，三个约定触发器共用；它们各自只提供识别函数与判定函数。
   结算那一步自己通过审批接缝提问，只有拿到 `allowed-once` 才把 target 记进状态——因为
   dispatcher 在监听器返回**之后**才结算 `ask`，答案不回传，「返回 ask」并不等于获批。
+  上游已经拒绝时它把发现追加进那段理由，既不记入状态也不改判。
 - `src/approval-policy.ts`：`ApprovalOutcome` / `ApprovalRequest` / `ApprovalSeam` 三个类型，
   以及 `unaskable()`——本会话审批策略为 `never` 时把 `ask` 改成自己给出的 `deny`。八个
   监听器都经过它，因为「问一个不会有人回答的问题」是它们共同的失效方式；它刻意不 import
@@ -212,9 +213,10 @@ PR 标题与描述、发版步骤与 CHANGELOG），五个守工作成果（可�
 - `src/state.ts`：命中计数与「同一会话同一问题只提示一次」的记忆（四种 `CheckKind`）——
   只在用户批准之后记入，拒绝、取消与没人被问到的情形都不记。
 
-`next()` 返回 `{kind:'allow'}` 之外的值时，本插件一律原样透传，绝不改判上游的决定；
-guard 是唯一的例外，且只在**自己的策略更严**（`deny` 对上上游的 `ask`）时才覆盖，
-理由写在 `src/guard/shared.ts:248-252`。
+`next()` 返回 `{kind:'allow'}` 之外的值时，本插件绝不改判上游的决定：`cancel` 原样透传；
+`deny` 保留拒绝本身，只把本级的发现追加进它的 `reason`（`src/triggers/shared.ts` 的
+`appendFindings()`）；guard 是唯一能覆盖的决定方，且只在**自己的策略更严**
+（`deny` 对上上游的 `ask`）时才覆盖，理由写在 `src/guard/shared.ts:248-252`。
 
 ## 共用的判定层
 

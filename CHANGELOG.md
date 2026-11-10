@@ -39,6 +39,7 @@
 - PR 描述里唯一的引用就是它自己的编号时不再算「已关联 Issue」：`gh pr edit 13` 的正文只提 `#13` 另给一条提示，仍只警告。
 - 审计日志路径没被 `.gitignore` 忽略时，写完第一行后按 warning 说一次（走 `git check-ignore`），免得拒绝清单随下一次提交出门。
 - 写 issue 的动作（`gh issue create`、`comment`、`close` 等）以前没有守卫：现归入 outward-guard，新增 `outwardGuard.issue`，读操作不算。
+- 审批策略为 `never` 时，内层守卫的拒绝不再吞掉本层的发现：触发器把自己的清单追加进那段理由，决定仍是上游的。
 
 ### Changed
 
