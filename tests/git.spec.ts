@@ -106,6 +106,44 @@ describe('git runner', () => {
     })
   })
 
+  it('classifies any failed call by probing the repository, not by the exit code', async () => {
+    // `git diff --cached` outside a work tree degrades to --no-index mode and
+    // exits 129, not 128: gating the probe on 128 alone reported "a git command
+    // failed" for a directory that simply is not a repository.
+    for (const exitCode of [1, 128, 129]) {
+      const stub = stubContext({
+        answer: (args) =>
+          args[0] === 'rev-parse'
+            ? { exitCode: 0, stdout: 'false\n' }
+            : { exitCode, stderr: 'error: unknown option' },
+      })
+      const runner = createGitRunner(stub.ctx, '/tmp')
+      const result = await runner.run(['diff', '--cached', '--name-only', '-z'])
+      expect(result).toEqual({
+        ok: false,
+        failure: 'not-a-git-repository',
+        stderr: 'error: unknown option',
+      })
+    }
+  })
+
+  it('keeps any ordinary failure inside a work tree', async () => {
+    const stub = stubContext({
+      answer: (args) =>
+        args[0] === 'rev-parse'
+          ? { exitCode: 0, stdout: 'true\n' }
+          : { exitCode: 129, stderr: 'fatal: something else' },
+    })
+    const runner = createGitRunner(stub.ctx, '/repo')
+    const result = await runner.run(['diff', '--cached', '--name-only', '-z'])
+    expect(result).toEqual({
+      ok: false,
+      failure: 'command-failed',
+      stderr: 'fatal: something else',
+      stdout: '',
+    })
+  })
+
   it('keeps an ordinary failure inside a work tree, stdout included', async () => {
     const stub = stubContext({
       answer: (args) =>

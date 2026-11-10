@@ -76,9 +76,6 @@ const MAX_STREAM_BYTES = 1024 * 1024
 /** Grace period handed to the subprocess provider's termination procedure. */
 const GRACE_MS = 5000
 
-/** Exit code git uses when it cannot run at all: no repository, or bad usage. */
-const NOT_A_REPOSITORY_EXIT = 128
-
 /**
  * Read the optional subprocess service from a context.
  * @param ctx - any DSH context; the service is resolved, not injected.
@@ -180,6 +177,10 @@ export function createGitRunner(ctx: Context, cwd: string): GitRunner {
   }
 
   const run: GitRunner['run'] = async (args, signal) => {
+    // Asked as a call, not read off `signal.aborted`: an abort can arrive during
+    // any of the awaits below, and a value the type checker narrowed earlier in
+    // this function is about that moment, not about now.
+    const cancelled = (): boolean => signal?.aborted === true
     const located = await locate(signal)
     if (!located.ok) return { ok: false, failure: located.failure, stderr: '' }
 
@@ -197,14 +198,19 @@ export function createGitRunner(ctx: Context, cwd: string): GitRunner {
 
     const { stdout, stderr } = outcome
     if (outcome.exitCode === 0) return { ok: true, stdout }
-    if (signal?.aborted === true) return { ok: false, failure: 'cancelled', stderr }
+    if (cancelled()) return { ok: false, failure: 'cancelled', stderr }
     if (outcome.exitCode === null) return { ok: false, failure: 'cancelled', stderr }
-    // 128 is git's usual cannot-run-here exit. The probe decides whether that
-    // means "no repository" or an ordinary failure inside one.
-    if (outcome.exitCode === NOT_A_REPOSITORY_EXIT) {
-      const inside = await isRepository(located.path, signal)
-      if (!inside) return { ok: false, failure: 'not-a-git-repository', stderr }
-    }
+    // The exit code does not say whether git could run here. 128 is the usual
+    // cannot-run-here code, but `git diff --cached` degrades to --no-index mode
+    // outside a work tree and exits 129, so gating the probe on one code would
+    // report "a git command failed" for a directory that is simply not a
+    // repository. Probing on every failed call keeps that answer independent of
+    // whichever code git picked this time; a call that succeeded pays nothing.
+    const inside = await isRepository(located.path, signal)
+    // The probe is another git call, so it can be cancelled too; a cancelled
+    // call is reported as cancelled, not as a directory that is not a repository.
+    if (cancelled()) return { ok: false, failure: 'cancelled', stderr }
+    if (!inside) return { ok: false, failure: 'not-a-git-repository', stderr }
     // The stdout is kept only for a command that reports its answer through it;
     // for everything else it is partial output of a failed run, and a caller
     // reading it as data would judge a truncated result.
