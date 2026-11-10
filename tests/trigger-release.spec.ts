@@ -306,14 +306,19 @@ describe('src/triggers/pre-release.ts', () => {
     expect(state.lastOutcome()).toBeUndefined()
   })
 
-  it('never second-guesses a gate that already decided', async () => {
-    const { listener } = trigger()
+  it('keeps a refusal another gate made and adds its findings to it', async () => {
+    const { listener, state } = trigger()
     const directory = project('0.1.0', EMPTY_CHANGELOG)
     const refusal = await fire(listener, 'npm publish', {
       cwd: directory,
       downstream: { kind: 'deny', reason: 'another gate says no' },
     })
-    expect(refusal).toEqual({ kind: 'deny', reason: 'another gate says no' })
+    expect(refusal.kind).toBe('deny')
+    expect(refusal.kind === 'deny' && refusal.reason).toMatch(/^another gate says no\n/)
+    expect(refusal.kind === 'deny' && refusal.reason).toContain(
+      t('trigger.pre_release.error.changelog_empty', { version: '0.1.0', section: 'Unreleased' }),
+    )
+    expect(state.lastOutcome()).toMatchObject({ kind: 'release', ok: false })
   })
 
   it('reports an abort rather than a finding', async () => {

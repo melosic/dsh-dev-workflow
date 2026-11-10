@@ -510,13 +510,14 @@ export function createPrePrTrigger(
   options: TriggerOptions,
 ): (exec: ToolExecution, next: () => Promise<PreToolDecision>) => Promise<PreToolDecision> {
   return async (exec, next) => {
-    // The gates behind this one decide first; a cancelled or refused call is not
-    // this check's to settle. What that answer does not do is skip the check:
-    // `gh pr create` is exactly the command the outward guard asks about, so
-    // settling the question from behind it would mean the pull request rules
-    // never ran.
+    // The gates behind this one decide first; a cancelled call is not this
+    // check's to settle. What a refusal does not do is skip the check: `gh pr
+    // create` is exactly the command the outward guard asks about, so settling
+    // that from behind it would mean the pull request rules never ran — and
+    // under a policy that refuses without asking, the guard's refusal is the
+    // only thing the user would ever hear about the description.
     const downstream = await next()
-    if (downstream.kind === 'cancel' || downstream.kind === 'deny') return downstream
+    if (downstream.kind === 'cancel') return downstream
 
     const agent = exec.agent
     if (agent === undefined) return downstream

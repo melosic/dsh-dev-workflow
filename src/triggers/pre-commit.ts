@@ -28,10 +28,10 @@ import { settleAbout } from './shared.js'
 // findings through the approval prompt.
 //
 // This rides on `tools/pre-execute`, a waterfall gate that wraps every tool
-// call. Two things shape the handler below: it must call `next()` first (so a
-// gate that already denies the call is not second-guessed), and it must always
-// settle — a tool call that throws inside the gate would surface as a tool
-// failure rather than a finding.
+// call. Two things shape the handler below: it must call `next()` first (another
+// gate's refusal outranks anything said here), and it must always settle — a tool
+// call that throws inside the gate would surface as a tool failure rather than a
+// finding.
 
 /** Options the trigger needs. Everything is a getter: the runtime owns it. */
 export interface PreCommitTriggerOptions {
@@ -68,6 +68,9 @@ export function createPreCommitTrigger(
     // check's to settle. What that answer does *not* do is suppress the check: a
     // guard that asks about the same commit would otherwise be the only thing
     // the user hears about it, and the convention rules would never run at all.
+    // A refusal only ends the check when the call is cancelled; otherwise the
+    // findings are appended to that refusal, which is the only way they reach
+    // somebody under a policy that refuses without asking.
     const downstream = await next()
     if (downstream.kind === 'cancel') return downstream
 
@@ -77,9 +80,6 @@ export function createPreCommitTrigger(
     if (command === undefined) return downstream
     const commit = detectCommit(command)
     if (commit === undefined) return downstream
-    // A refusal needs no run, but it is worth naming: the call was stopped for a
-    // convention problem as well as for whatever the other gate objected to.
-    if (downstream.kind === 'deny') return downstream
     if (exec.signal.aborted) return { kind: 'cancel' }
 
     const t = options.t()

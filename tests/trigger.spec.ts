@@ -141,12 +141,21 @@ describe('src/triggers/pre-commit.ts', () => {
     expect(state.lastOutcome()).toBeUndefined()
   })
 
-  it('never second-guesses a gate that already decided', async () => {
-    const { listener } = trigger()
+  it('keeps a refusal another gate made and adds its findings to it', async () => {
+    const { listener, state } = trigger()
     const refusal = await fire(listener, 'git commit -m "Add the thing"', {
       downstream: { kind: 'deny', reason: 'another gate says no' },
     })
-    expect(refusal).toEqual({ kind: 'deny', reason: 'another gate says no' })
+    // The refusal is still the other gate's: same kind, same opening words. What
+    // it gains is the finding, because under a policy that refuses without
+    // asking this text is the only account of the call the model ever gets.
+    expect(refusal.kind).toBe('deny')
+    expect(refusal.kind === 'deny' && refusal.reason).toMatch(/^another gate says no\n/)
+    expect(refusal.kind === 'deny' && refusal.reason).toContain(
+      t('tool.check_commit_message.error.missing_type'),
+    )
+    // It was still judged, so the status line can say the commit broke a rule.
+    expect(state.lastOutcome()).toMatchObject({ kind: 'commit', ok: false })
 
     // The question another gate is asking is not replaced by a second one. Its
     // prompt is the published route to the plugin's approval seam, so the

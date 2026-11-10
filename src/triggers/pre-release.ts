@@ -567,12 +567,13 @@ export function createPreReleaseTrigger(
   options: TriggerOptions,
 ): (exec: ToolExecution, next: () => Promise<PreToolDecision>) => Promise<PreToolDecision> {
   return async (exec, next) => {
-    // The gates behind this one decide first; a cancelled or refused call is not
-    // this check's to settle. Its `ask` is not a skip, though: `git tag` and
-    // `npm publish` are exactly what the outward guard asks about, so returning
-    // early on it would leave the release rules unread.
+    // The gates behind this one decide first; a cancelled call is not this
+    // check's to settle. Neither its `ask` nor its refusal is a skip: `git tag`
+    // and `npm publish` are exactly what the outward guard asks about, so
+    // returning early would leave the release rules unread — and under a policy
+    // that refuses without asking, that refusal is all the user would hear.
     const downstream = await next()
-    if (downstream.kind === 'cancel' || downstream.kind === 'deny') return downstream
+    if (downstream.kind === 'cancel') return downstream
 
     const agent = exec.agent
     if (agent === undefined) return downstream

@@ -92,13 +92,17 @@ async function run(
     existing?: readonly string[]
     unborn?: boolean
     config?: Record<string, unknown>
+    /** The approval policy the composed seam reports; `never` refuses without asking. */
+    policy?: string
   } = {},
 ): Promise<{
   decision: PreToolDecision
   asks: string[][]
   harness: ReturnType<typeof createHarness>
 }> {
-  const harness = createHarness()
+  const harness = createHarness(
+    options.policy === undefined ? {} : { approval: true, policy: options.policy },
+  )
   const asks: string[][] = []
   const repo = makeRepo({ ...options, asks })
   // `en-US` explicitly: the prompts are bilingual, the model-facing reason is
@@ -137,6 +141,26 @@ describe('guard and trigger on one chain', () => {
     expect(ask.reason).toContain(t('security.guard.outward_pull_request'))
     expect(ask.reason).toContain(t('tool.check_commit_message.error.missing_type'))
     expect(ask.displayReason.en).toContain(t('tool.check_commit_message.error.missing_type'))
+  })
+
+  it('names the pull-request findings inside the refusal when nobody can be asked', async () => {
+    const { decision } = await run(
+      'gh pr create --title "Add the thing" --body "No sections here."',
+      {
+        policy: 'never',
+      },
+    )
+
+    // Under `never` the outward guard's question is refused before it is asked,
+    // so the refusal is the only text the model ever reads. The description rules
+    // have to be in it, or the check never spoke at all.
+    expect(decision.kind).toBe('deny')
+    expect((decision as { reason: string }).reason).toContain(
+      t('security.guard.outward_pull_request'),
+    )
+    expect((decision as { reason: string }).reason).toContain(
+      t('tool.check_commit_message.error.missing_type'),
+    )
   })
 
   it('reads a clustered short option, so `git commit -am` still gets its message checked', async () => {
